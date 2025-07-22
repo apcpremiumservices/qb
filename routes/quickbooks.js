@@ -91,13 +91,12 @@ router.get('/report/open-orders', async (req, res) => {
     res.json(invoices);
   } catch (err) {
   console.error("❌ Error fetching report:");
-if (err.response) {
-  console.error("Status:", err.response.status);
-  console.error("Data:", err.response.data);
-} else {
-  console.error(err.message);
+  if (err.response) {
+    console.error("Status:", err.response.status);
+    console.error("Data:", JSON.stringify(err.response.data, null, 2)); // 👈 Add this!
+  } else {
+    console.error(err.message);
   }
-
   res.status(500).send('Error fetching report');
   }
 });
