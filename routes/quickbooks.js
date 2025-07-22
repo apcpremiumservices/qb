@@ -61,9 +61,24 @@ router.get('/report/open-orders', async (req, res) => {
     return res.status(401).send('Not connected to QuickBooks');
   }
 
+  const { customer, fromDate, toDate, limit = 10, offset = 0 } = req.query;
+
+  // Build WHERE clause
+  let where = `Balance > '0'`;
+
+  if (customer) {
+    where += ` AND DisplayName LIKE '%${customer}%'`;
+  }
+
+  if (fromDate && toDate) {
+    where += ` AND TxnDate >= '${fromDate}' AND TxnDate <= '${toDate}'`;
+  }
+
+  const query = `SELECT * FROM Invoice WHERE ${where} STARTPOSITION ${offset} MAXRESULTS ${limit}`;
+
   try {
     const response = await axios.get(
-      `https://quickbooks.api.intuit.com/v3/company/${realmId}/query?query=SELECT * FROM Invoice WHERE Balance > '0'`,
+      `https://quickbooks.api.intuit.com/v3/company/${realmId}/query?query=${encodeURIComponent(query)}`,
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
@@ -72,8 +87,8 @@ router.get('/report/open-orders', async (req, res) => {
       }
     );
 
-    const orders = response.data.QueryResponse.Invoice || [];
-    res.json(orders);
+    const invoices = response.data.QueryResponse.Invoice || [];
+    res.json(invoices);
   } catch (err) {
     console.error(err.response?.data || err.message);
     res.status(500).send('Error fetching report');
