@@ -90,8 +90,15 @@ router.get('/report/open-orders', async (req, res) => {
     const invoices = response.data.QueryResponse.Invoice || [];
     res.json(invoices);
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    res.status(500).send('Error fetching report');
+  console.error("❌ Error fetching report:");
+if (err.response) {
+  console.error("Status:", err.response.status);
+  console.error("Data:", err.response.data);
+} else {
+  console.error(err.message);
+  }
+
+  res.status(500).send('Error fetching report');
   }
 });
 
