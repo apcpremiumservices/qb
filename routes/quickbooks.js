@@ -23,6 +23,8 @@ router.get('/connect', (req, res) => {
 router.get('/callback', async (req, res) => {
   const { code, realmId: qboRealmId } = req.query;
 
+  console.log("✅ Connected to Realm ID:", qboRealmId); // 👈 this one is correct
+
   try {
     const tokenRes = await axios.post(
       'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer',
@@ -43,18 +45,16 @@ router.get('/callback', async (req, res) => {
     access_token = tokenRes.data.access_token;
     realmId = qboRealmId;
 
+    console.log("🔐 Access token:", access_token); // optional: remove in production
+
     res.send('✅ QuickBooks connected! Now visit /report/open-orders');
   } catch (err) {
-     console.error("🔴 Failed to exchange token:");
-  if (err.response) {
-    console.error("Status:", err.response.status);
-    console.error("Data:", err.response.data);
-  } else {
-    console.error(err.message);
-  }
-  res.status(500).send('❌ OAuth error');
+    console.error("❌ Error in /callback:");
+    console.error(err.response?.data || err.message);
+    res.status(500).send('OAuth callback failed');
   }
 });
+
 
 router.get('/report/open-orders', async (req, res) => {
   if (!access_token || !realmId) {
